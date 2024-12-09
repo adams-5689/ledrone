@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContexts";
 
 const Header: React.FC = () => {
+  const { user, logout } = useAuth();
   return (
     <header className="bg-blue-600 text-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -26,22 +28,47 @@ const Header: React.FC = () => {
                 Marketplace
               </Link>
             </li>
-            <li>
-              <Link
-                to="/login"
-                className="hover:text-blue-200 transition-colors"
-              >
-                Login
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/registration"
-                className="hover:text-blue-200 transition-colors"
-              >
-                Registration
-              </Link>
-            </li>
+            {user ? (
+              <>
+                <li>
+                  <Link
+                    to="/profile"
+                    className="hover:text-blue-200 transition-colors"
+                  >
+                    profile
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={() => logout()}
+                    className="hover:text-blue-200 transition-colors"
+                  >
+                    logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    to="/login"
+                    className="hover:text-blue-200 transition-colors"
+                  >
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <li>
+                    <Link
+                      to="/enregistrement"
+                      className="hover:text-blue-200 transition-colors"
+                    >
+                      Enregistrement
+                    </Link>
+                  </li>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       </div>
