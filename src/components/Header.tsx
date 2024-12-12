@@ -58,14 +58,12 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <li>
-                    <Link
-                      to="/enregistrement"
-                      className="hover:text-blue-200 transition-colors"
-                    >
-                      Enregistrement
-                    </Link>
-                  </li>
+                  <Link
+                    to="/registration"
+                    className="hover:text-blue-200 transition-colors"
+                  >
+                    Enregistrement
+                  </Link>
                 </li>
               </>
             )}
