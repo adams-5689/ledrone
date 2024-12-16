@@ -1,15 +1,19 @@
-import React, { useState, ChangeEvent } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../configs/firebase';
-import { useAuth } from '../contexts/AuthContexts';
-import { motion } from 'framer-motion';
+import React, { useState, ChangeEvent } from "react";
+import { collection, addDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../configs/firebase";
+import { useAuth } from "../contexts/AuthContexts";
+import { motion } from "framer-motion";
 
-const AddArticleForm: React.FC = () => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('');
-  const [scope, setScope] = useState('');
+interface AddArticleFormProps {
+  onArticleAdded: () => void;
+}
+
+const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState("");
+  const [scope, setScope] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,18 +43,24 @@ const AddArticleForm: React.FC = () => {
 
     setLoading(true);
     try {
-      let imageUrl = '';
-      let videoUrl = '';
+      let imageUrl = "";
+      let videoUrl = "";
 
       if (image) {
-        imageUrl = await uploadFile(image, `articles/${Date.now()}_${image.name}`);
+        imageUrl = await uploadFile(
+          image,
+          `articles/${Date.now()}_${image.name}`
+        );
       }
 
       if (video) {
-        videoUrl = await uploadFile(video, `articles/${Date.now()}_${video.name}`);
+        videoUrl = await uploadFile(
+          video,
+          `articles/${Date.now()}_${video.name}`
+        );
       }
 
-      await addDoc(collection(db, 'articles'), {
+      await addDoc(collection(db, "articles"), {
         title,
         content,
         category,
@@ -61,16 +71,17 @@ const AddArticleForm: React.FC = () => {
         videoUrl,
       });
 
-      setTitle('');
-      setContent('');
-      setCategory('');
-      setScope('');
+      setTitle("");
+      setContent("");
+      setCategory("");
+      setScope("");
       setImage(null);
       setVideo(null);
-      alert('Article added successfully!');
+      alert("Article added successfully!");
+      onArticleAdded(); // Call this function to inform the parent component
     } catch (error) {
-      console.error('Error adding article: ', error);
-      alert('Failed to add article');
+      console.error("Error adding article: ", error);
+      alert("Failed to add article");
     } finally {
       setLoading(false);
     }
@@ -86,7 +97,10 @@ const AddArticleForm: React.FC = () => {
     >
       <h2 className="text-2xl font-bold mb-4">Add New Article</h2>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="title"
+        >
           Title
         </label>
         <input
@@ -100,7 +114,10 @@ const AddArticleForm: React.FC = () => {
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="category">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="category"
+        >
           Category
         </label>
         <input
@@ -114,7 +131,10 @@ const AddArticleForm: React.FC = () => {
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="scope">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="scope"
+        >
           Scope
         </label>
         <select
@@ -132,7 +152,10 @@ const AddArticleForm: React.FC = () => {
         </select>
       </div>
       <div className="mb-6">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="content"
+        >
           Content
         </label>
         <textarea
@@ -146,7 +169,10 @@ const AddArticleForm: React.FC = () => {
         ></textarea>
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="image"
+        >
           Image
         </label>
         <input
@@ -158,7 +184,10 @@ const AddArticleForm: React.FC = () => {
         />
       </div>
       <div className="mb-6">
-        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="video">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="video"
+        >
           Video
         </label>
         <input
@@ -177,7 +206,7 @@ const AddArticleForm: React.FC = () => {
           type="submit"
           disabled={loading}
         >
-          {loading ? 'Adding Article...' : 'Add Article'}
+          {loading ? "Adding Article..." : "Add Article"}
         </motion.button>
       </div>
     </motion.form>
@@ -185,4 +214,3 @@ const AddArticleForm: React.FC = () => {
 };
 
 export default AddArticleForm;
-
