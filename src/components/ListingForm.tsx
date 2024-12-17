@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { db } from "../configs/firebase";
 import { useAuth } from "../contexts/AuthContexts";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { addDoc, collection } from "firebase/firestore";
+import { Button } from "./ui/button";
 
-interface PollFormProps {
-  onPollAdded: (newPoll: any) => void;
+interface ListingFormProps {
+  onListingAdded: (newListing: any) => void;
 }
 
-const PollForm: React.FC<PollFormProps> = ({ onPollAdded }) => {
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState(["", ""]);
+const ListingForm: React.FC<ListingFormProps> = ({ onListingAdded }) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
   const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,62 +22,67 @@ const PollForm: React.FC<PollFormProps> = ({ onPollAdded }) => {
     if (!user) return;
 
     try {
-      const pollRef = await db.collection("polls").add({
-        question,
-        options: options.map((option) => ({ text: option, votes: 0 })),
+      const listingRef = await addDoc(collection(db, "listings"), {
+        title,
+        description,
+        price: parseFloat(price),
+        category,
         createdAt: new Date().toISOString(),
         userId: user.uid,
+        views: 0,
       });
-      const newPoll = {
-        id: pollRef.id,
-        question,
-        options: options.map((option) => ({
-          id: Math.random().toString(36).substr(2, 9),
-          text: option,
-          votes: 0,
-        })),
+
+      const newListing = {
+        id: listingRef.id,
+        title,
+        description,
+        price: parseFloat(price),
+        category,
+        createdAt: new Date(),
+        views: 0,
       };
-      onPollAdded(newPoll);
-      setQuestion("");
-      setOptions(["", ""]);
+
+      onListingAdded(newListing);
+      setTitle("");
+      setDescription("");
+      setPrice("");
+      setCategory("");
     } catch (error) {
-      console.error("Error adding poll:", error);
+      console.error("Error adding listing:", error);
     }
   };
-
-  const addOption = () => {
-    setOptions([...options, ""]);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         type="text"
-        placeholder="Question"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         required
       />
-      {options.map((option, index) => (
-        <Input
-          key={index}
-          type="text"
-          placeholder={`Option ${index + 1}`}
-          value={option}
-          onChange={(e) => {
-            const newOptions = [...options];
-            newOptions[index] = e.target.value;
-            setOptions(newOptions);
-          }}
-          required
-        />
-      ))}
-      <Button type="button" onClick={addOption}>
-        Add Option
-      </Button>
-      <Button type="submit">Create Poll</Button>
+      <Textarea
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        required
+      />
+      <Input
+        type="number"
+        placeholder="Price"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        required
+      />
+      <Input
+        type="text"
+        placeholder="Category"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        required
+      />
+      <Button type="submit">Create Listing</Button>
     </form>
   );
 };
 
-export default PollForm;
+export default ListingForm;

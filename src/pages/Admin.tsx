@@ -1,27 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContexts";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
 import { db } from "../configs/firebase";
 import StatisticsCard from "../components/StatisticsCard";
-import AdminChart from "../components/AdminChart";
+import AdminChart from "../components/AdminCard";
 import {
   UserIcon,
   NewspaperIcon,
   ShoppingBagIcon,
   ChartBarIcon,
-  ChatIcon,
-  ThumbUpIcon,
+  HeartIcon,
+  HandThumbUpIcon,
   ClockIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+} from "../components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { Button } from "../components/ui/button";
 import {
   Table,
   TableBody,
@@ -29,7 +44,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../components/ui/table";
 import {
   getPageViewsForLastNDays,
   getUserActionsForLastNDays,
@@ -122,21 +137,21 @@ const Admin: React.FC = () => {
 
     const fetchData = async () => {
       // Fetch articles, listings, and polls
-      const articlesSnapshot = await db.collection("articles").get();
+      const articlesSnapshot = await getDocs(collection(db, "articles"));
       const fetchedArticles = articlesSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Article[];
       setArticles(fetchedArticles);
 
-      const listingsSnapshot = await db.collection("listings").get();
+      const listingsSnapshot = await getDocs(collection(db, "listings"));
       const fetchedListings = listingsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Listing[];
       setListings(fetchedListings);
 
-      const pollsSnapshot = await db.collection("polls").get();
+      const pollsSnapshot = await getDocs(collection(db, "polls"));
       const fetchedPolls = pollsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -144,7 +159,7 @@ const Admin: React.FC = () => {
       setPolls(fetchedPolls);
 
       // Fetch basic statistics
-      const usersCount = (await db.collection("users").get()).size;
+      const usersCount = (await getDocs(collection(db, "users"))).size;
       const articlesCount = articlesSnapshot.size;
       const listingsCount = listingsSnapshot.size;
       const pollsCount = pollsSnapshot.size;
@@ -153,11 +168,9 @@ const Admin: React.FC = () => {
       let totalLikes = 0;
 
       for (const article of fetchedArticles) {
-        const commentsSnapshot = await db
-          .collection("articles")
-          .doc(article.id)
-          .collection("comments")
-          .get();
+        const commentsSnapshot = await getDocs(
+          collection(db, "articles", article.id, "comments")
+        );
         totalComments += commentsSnapshot.size;
         totalLikes += article.likes || 0;
       }
@@ -166,10 +179,9 @@ const Admin: React.FC = () => {
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const userSnapshot = await db
-        .collection("users")
-        .where("lastLogin", ">=", thirtyDaysAgo)
-        .get();
+      const userSnapshot = await getDocs(
+        query(collection(db, "users"), where("lastLogin", ">=", thirtyDaysAgo))
+      );
 
       const dailyActiveUsers = userSnapshot.docs.filter(
         (doc) =>
@@ -215,17 +227,17 @@ const Admin: React.FC = () => {
   }, [user, isAdmin, navigate]);
 
   const handleDeleteArticle = async (id: string) => {
-    await db.collection("articles").doc(id).delete();
+    await deleteDoc(doc(db, "articles", id));
     setArticles(articles.filter((article) => article.id !== id));
   };
 
   const handleDeleteListing = async (id: string) => {
-    await db.collection("listings").doc(id).delete();
+    await deleteDoc(doc(db, "listings", id));
     setListings(listings.filter((listing) => listing.id !== id));
   };
 
   const handleDeletePoll = async (id: string) => {
-    await db.collection("polls").doc(id).delete();
+    await deleteDoc(doc(db, "polls", id));
     setPolls(polls.filter((poll) => poll.id !== id));
   };
 
@@ -282,12 +294,12 @@ const Admin: React.FC = () => {
                 <StatisticsCard
                   title="Total Comments"
                   value={statistics.totalComments}
-                  icon={<ChatIcon className="h-6 w-6" />}
+                  icon={<HeartIcon className="h-6 w-6" />}
                 />
                 <StatisticsCard
                   title="Total Likes"
                   value={statistics.totalLikes}
-                  icon={<ThumbUpIcon className="h-6 w-6" />}
+                  icon={<HandThumbUpIcon className="h-6 w-6" />}
                 />
                 <StatisticsCard
                   title="Daily Active Users"

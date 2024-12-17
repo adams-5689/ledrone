@@ -1,19 +1,40 @@
 import React, { useState, ChangeEvent } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../configs/firebase";
 import { useAuth } from "../contexts/AuthContexts";
 import { motion } from "framer-motion";
 
-interface AddArticleFormProps {
-  onArticleAdded: () => void;
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  author: string;
+  date: string;
+  views: number;
+  likes: number;
+  comments: number;
+  scope: string;
+  tags: string[];
+  imageUrl: string;
+  videoUrl: string;
 }
 
-const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
+interface AddArticleFormProps {
+  onArticleAdded: (newArticle: Article) => void;
+  categories: { id: string; name: string }[];
+}
+
+const AddArticleForm: React.FC<AddArticleFormProps> = ({
+  onArticleAdded,
+  categories,
+}) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
   const [scope, setScope] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,6 +50,11 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     if (e.target.files && e.target.files[0]) {
       setVideo(e.target.files[0]);
     }
+  };
+
+  const handleTagChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const tagArray = e.target.value.split(",").map((tag) => tag.trim());
+    setTags(tagArray);
   };
 
   const uploadFile = async (file: File, path: string) => {
@@ -60,13 +86,34 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
         );
       }
 
-      await addDoc(collection(db, "articles"), {
+      const docRef = await addDoc(collection(db, "articles"), {
         title,
         content,
         category,
         scope,
-        author: user.displayName || user.email,
+        tags,
+        author: user.displayName || user.email || "Anonymous",
         date: new Date().toISOString(),
+        imageUrl,
+        videoUrl,
+        likes: 0,
+        dislikes: 0,
+        views: 0,
+        comments: 0,
+      });
+
+      onArticleAdded({
+        id: docRef.id,
+        title,
+        content,
+        category,
+        author: user.displayName || user.email || "Anonymous",
+        date: new Date().toISOString(),
+        views: 0,
+        likes: 0,
+        comments: 0,
+        scope,
+        tags,
         imageUrl,
         videoUrl,
       });
@@ -75,10 +122,11 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
       setContent("");
       setCategory("");
       setScope("");
+      setTags([]);
       setImage(null);
       setVideo(null);
-      alert("Article added successfully!");
-      onArticleAdded(); // Call this function to inform the parent component
+      // alert('Article added successfully!');
+      //onArticleAdded(); //This line was removed as per the update request.  The above onArticleAdded call is sufficient.
     } catch (error) {
       console.error("Error adding article: ", error);
       alert("Failed to add article");
@@ -120,15 +168,20 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
         >
           Category
         </label>
-        <input
+        <select
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           id="category"
-          type="text"
-          placeholder="Article Category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
-        />
+        >
+          <option value="">Select a category</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="mb-4">
         <label
@@ -150,6 +203,22 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
           <option value="sub-regional">Sub-regional</option>
           <option value="international">International</option>
         </select>
+      </div>
+      <div className="mb-4">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="tags"
+        >
+          Tags (comma-separated)
+        </label>
+        <input
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="tags"
+          type="text"
+          placeholder="Enter tags, separated by commas"
+          value={tags.join(", ")}
+          onChange={handleTagChange}
+        />
       </div>
       <div className="mb-6">
         <label

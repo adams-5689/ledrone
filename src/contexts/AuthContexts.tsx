@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   User,
   signInWithEmailAndPassword,
@@ -6,18 +6,21 @@ import {
   signOut,
   UserCredential,
 } from "firebase/auth";
-import { auth } from "../configs/firebase";
-interface AuthContextsType {
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db, auth } from "../configs/firebase";
+
+interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<UserCredential>;
   register: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
 }
 
-const AuthContexts = createContext<AuthContextsType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
-  const context = useContext(AuthContexts);
+  const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
@@ -28,32 +31,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(setUser);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setUser(user);
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        setIsAdmin(userDoc.data()?.isAdmin || false);
+      } else {
+        setIsAdmin(false);
+      }
+    });
     return unsubscribe;
   }, []);
 
-  const login = (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (email: string, password: string) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(db, "users", result.user.uid));
+    setIsAdmin(userDoc.data()?.isAdmin || false);
+    return result;
   };
 
-  const register = (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const register = async (email: string, password: string) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", result.user.uid), {
+      email: result.user.email,
+      isAdmin: false,
+    });
+    return result;
   };
 
-  const logout = () => {
-    return signOut(auth);
+  const logout = async () => {
+    await signOut(auth);
+    setIsAdmin(false);
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
+    isAdmin,
     login,
     register,
     logout,
   };
 
-  return (
-    <AuthContexts.Provider value={value}> {children}</AuthContexts.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
