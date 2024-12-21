@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { db } from "../configs/firebase";
 import { useAuth } from "../contexts/AuthContexts";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 
 interface PollFormProps {
   onPollAdded: (newPoll: any) => void;

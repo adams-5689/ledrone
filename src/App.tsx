@@ -1,12 +1,16 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Header from "./components/Header";
-import Home from "./pages/Home";
-import News from "./pages/News";
-import Marketplace from "./pages/Marketplace";
-import Login from "./pages/Login";
-import Registration from "./pages/Registration";
-import { AuthProvider } from "./contexts/AuthContexts";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Header from './components/Header';
+import Home from './pages/Home';
+import News from './pages/News';
+import ArticleDetail from './pages/ArticleDetail';
+import Marketplace from './pages/Marketplace';
+import Login from './pages/Login';
+import Register from './pages/Registration';
+import Admin from './pages/Admin';
+import AdminRoute from './components/AdminRoute';
+import { AuthProvider } from './contexts/AuthContexts';
+import { motion } from 'framer-motion';
 
 const App: React.FC = () => {
   return (
@@ -14,19 +18,34 @@ const App: React.FC = () => {
       <Router>
         <div className="min-h-screen bg-gray-100">
           <Header />
-          <main>
+          <motion.main
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="container mx-auto px-4 py-8"
+          >
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<ArticleDetail />} />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/Login" element={<Login />} />
-              <Route path="/registration" element={<Registration />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                } 
+              />
             </Routes>
-          </main>
+          </motion.main>
         </div>
       </Router>
     </AuthProvider>
   );
-};
+}
 
 export default App;
+

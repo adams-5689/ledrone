@@ -1,9 +1,14 @@
-import React, { useState, ChangeEvent } from "react";
-import { collection, addDoc, doc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../configs/firebase";
-import { useAuth } from "../contexts/AuthContexts";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../configs/firebase';
+import { useAuth } from '../contexts/AuthContexts';
+import { motion } from 'framer-motion';
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface Article {
   id: string;
@@ -23,22 +28,32 @@ interface Article {
 
 interface AddArticleFormProps {
   onArticleAdded: (newArticle: Article) => void;
-  categories: { id: string; name: string }[];
 }
 
-const AddArticleForm: React.FC<AddArticleFormProps> = ({
-  onArticleAdded,
-  categories,
-}) => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState("");
-  const [scope, setScope] = useState("");
+const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [scope, setScope] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const querySnapshot = await getDocs(collection(db, 'categories'));
+      const fetchedCategories = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name
+      }));
+      setCategories(fetchedCategories);
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -53,7 +68,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
   };
 
   const handleTagChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const tagArray = e.target.value.split(",").map((tag) => tag.trim());
+    const tagArray = e.target.value.split(',').map(tag => tag.trim());
     setTags(tagArray);
   };
 
@@ -69,45 +84,38 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
 
     setLoading(true);
     try {
-      let imageUrl = "";
-      let videoUrl = "";
+      let imageUrl = '';
+      let videoUrl = '';
 
       if (image) {
-        imageUrl = await uploadFile(
-          image,
-          `articles/${Date.now()}_${image.name}`
-        );
+        imageUrl = await uploadFile(image, `articles/${Date.now()}_${image.name}`);
       }
 
       if (video) {
-        videoUrl = await uploadFile(
-          video,
-          `articles/${Date.now()}_${video.name}`
-        );
+        videoUrl = await uploadFile(video, `articles/${Date.now()}_${video.name}`);
       }
 
-      const docRef = await addDoc(collection(db, "articles"), {
+      const docRef = await addDoc(collection(db, 'articles'), {
         title,
         content,
         category,
         scope,
         tags,
-        author: user.displayName || user.email || "Anonymous",
+        author: user.displayName || user.email || 'Anonymous',
         date: new Date().toISOString(),
         imageUrl,
         videoUrl,
         likes: 0,
-        dislikes: 0,
         views: 0,
         comments: 0,
       });
 
-      onArticleAdded({
+      const newArticle = {
         id: docRef.id,
         title,
         content,
         category,
-        author: user.displayName || user.email || "Anonymous",
+        author: user.displayName || user.email || 'Anonymous',
         date: new Date().toISOString(),
         views: 0,
         likes: 0,
@@ -115,21 +123,21 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         scope,
         tags,
         imageUrl,
-        videoUrl,
-      });
+        videoUrl
+      };
 
-      setTitle("");
-      setContent("");
-      setCategory("");
-      setScope("");
+      onArticleAdded(newArticle);
+
+      setTitle('');
+      setContent('');
+      setCategory('');
+      setScope('');
       setTags([]);
       setImage(null);
       setVideo(null);
-      // alert('Article added successfully!');
-      //onArticleAdded(); //This line was removed as per the update request.  The above onArticleAdded call is sufficient.
     } catch (error) {
-      console.error("Error adding article: ", error);
-      alert("Failed to add article");
+      console.error('Error adding article: ', error);
+      alert('Failed to add article');
     } finally {
       setLoading(false);
     }
@@ -145,10 +153,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
     >
       <h2 className="text-2xl font-bold mb-4">Add New Article</h2>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="title"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
           Title
         </label>
         <input
@@ -162,10 +167,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         />
       </div>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="category"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="category">
           Category
         </label>
         <select
@@ -184,10 +186,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         </select>
       </div>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="scope"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="scope">
           Scope
         </label>
         <select
@@ -205,10 +204,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         </select>
       </div>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="tags"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tags">
           Tags (comma-separated)
         </label>
         <input
@@ -216,15 +212,12 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
           id="tags"
           type="text"
           placeholder="Enter tags, separated by commas"
-          value={tags.join(", ")}
+          value={tags.join(', ')}
           onChange={handleTagChange}
         />
       </div>
       <div className="mb-6">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="content"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
           Content
         </label>
         <textarea
@@ -238,10 +231,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         ></textarea>
       </div>
       <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="image"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
           Image
         </label>
         <input
@@ -253,10 +243,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
         />
       </div>
       <div className="mb-6">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="video"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="video">
           Video
         </label>
         <input
@@ -275,7 +262,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
           type="submit"
           disabled={loading}
         >
-          {loading ? "Adding Article..." : "Add Article"}
+          {loading ? 'Adding Article...' : 'Add Article'}
         </motion.button>
       </div>
     </motion.form>
@@ -283,3 +270,4 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({
 };
 
 export default AddArticleForm;
+
