@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
-import { db } from '../configs/firebase';
-import NewsArticle from '../components/NewsArticle';
-import AddArticleForm from '../components/AddArticleForm';
-import CategoryList from '../components/CategoryList';
-import { useAuth } from '../contexts/AuthContexts';
-import { Link } from 'react-router-dom';
-import { Button } from "../components/ui/button"
+import React, { useState, useEffect } from "react";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  where,
+} from "firebase/firestore";
+import { db } from "../configs/firebase";
+import NewsArticle from "../components/NewsArticle";
+import AddArticleForm from "../components/AddArticleForm";
+import CategoryList from "../components/CategoryList";
+import { useAuth } from "../contexts/AuthContexts";
+import { Link } from "react-router-dom";
+import { Button } from "../components/ui/button";
 
 interface Article {
   id: string;
@@ -36,33 +43,40 @@ const Home: React.FC = () => {
 
   const fetchArticles = async () => {
     setLoading(true);
-    const articlesCollection = collection(db, 'articles');
-    let articlesQuery = query(articlesCollection, orderBy('date', 'desc'), limit(10));
+    const articlesCollection = collection(db, "articles");
+    let articlesQuery = query(
+      articlesCollection,
+      orderBy("date", "desc"),
+      limit(10)
+    );
 
     if (selectedCategory) {
       articlesQuery = query(
-        articlesCollection, 
-        where('category', '==', selectedCategory), 
-        orderBy('date', 'desc'), 
+        articlesCollection,
+        where("category", "==", selectedCategory),
+        orderBy("date", "desc"),
         limit(10)
       );
     }
 
     const querySnapshot = await getDocs(articlesQuery);
-    const fetchedArticles = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Article));
+    const fetchedArticles = querySnapshot.docs.map(
+      (doc) =>
+        ({
+          id: doc.id,
+          ...doc.data(),
+        } as Article)
+    );
     setArticles(fetchedArticles);
     setLoading(false);
   };
 
   const fetchCategories = async () => {
-    const categoriesCollection = collection(db, 'categories');
+    const categoriesCollection = collection(db, "categories");
     const querySnapshot = await getDocs(categoriesCollection);
-    const fetchedCategories = querySnapshot.docs.map(doc => ({
+    const fetchedCategories = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      name: doc.data().name
+      name: doc.data().name,
     }));
     setCategories(fetchedCategories);
   };
@@ -86,8 +100,8 @@ const Home: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Welcome to AgoraNews</h1>
-      
+      <h1 className="text-3xl font-bold mb-6">Bienvenue sur LeDrone</h1>
+
       {isAdmin && (
         <div className="mb-6">
           <Link to="/admin">
@@ -104,7 +118,7 @@ const Home: React.FC = () => {
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4">Latest News</h2>
-        {articles.map(article => (
+        {articles.map((article) => (
           <NewsArticle key={article.id} {...article} />
         ))}
       </div>
@@ -113,4 +127,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-

@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { db } from '../configs/firebase';
-import { useAuth } from '../contexts/AuthContexts';
+import React, { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
+import { db } from "../configs/firebase";
+import { useAuth } from "../contexts/AuthContexts";
 
 interface Comment {
   id: string;
@@ -17,22 +25,32 @@ interface CommentSectionProps {
 
 const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
-    const commentsRef = collection(db, 'articles', articleId, 'comments');
-    const q = query(commentsRef, orderBy('createdAt', 'desc'));
+    const commentsRef = collection(db, "articles", articleId, "comments");
+    const q = query(commentsRef, orderBy("createdAt", "desc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedComments = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Comment));
-      setComments(fetchedComments);
-    }, (error) => {
-      console.error("Erreur lors de la récupération des commentaires:", error);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedComments = snapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            } as Comment)
+        );
+        setComments(fetchedComments);
+      },
+      (error) => {
+        console.error(
+          "Erreur lors de la récupération des commentaires:",
+          error
+        );
+      }
+    );
 
     return () => unsubscribe();
   }, [articleId]);
@@ -42,15 +60,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
     if (!user || !newComment.trim()) return;
 
     try {
-      await addDoc(collection(db, 'articles', articleId, 'comments'), {
+      await addDoc(collection(db, "articles", articleId, "comments"), {
         text: newComment.trim(),
         userId: user.uid,
-        userName: user.displayName || 'Anonyme',
-        createdAt: serverTimestamp()
+        userName: user.email || "Anonyme",
+        createdAt: serverTimestamp(),
       });
-      setNewComment('');
+      setNewComment("");
     } catch (error) {
-      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      console.error("Erreur lors de l'ajout du commentaire:", error);
     }
   };
 
@@ -66,7 +84,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
             placeholder="Écrivez un commentaire..."
             rows={3}
           />
-          <button type="submit" className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <button
+            type="submit"
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
             Poster le commentaire
           </button>
         </form>
@@ -79,9 +100,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
             <p className="font-semibold">{comment.userName}</p>
             <p>{comment.text}</p>
             <p className="text-sm text-gray-500">
-              {comment.createdAt && comment.createdAt.toDate 
-                ? comment.createdAt.toDate().toLocaleString() 
-                : 'Date non disponible'}
+              {comment.createdAt && comment.createdAt.toDate
+                ? comment.createdAt.toDate().toLocaleString()
+                : "Date non disponible"}
             </p>
           </div>
         ))}
@@ -91,4 +112,3 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
 };
 
 export default CommentSection;
-

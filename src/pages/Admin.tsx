@@ -1,19 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContexts';
-import { collection, getDocs, deleteDoc, doc, query, orderBy, limit, where } from 'firebase/firestore';
-import { db } from '../configs/firebase';
-import StatisticsCard from '../components/StatisticsCard';
-import AdminChart from '../components/AdminCard';
-import { UserIcon, NewspaperIcon, ShoppingBagIcon, ChartBarIcon, HeartIcon, HandThumbUpIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
-import { Button } from "../components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
-import { getPageViewsForLastNDays, getUserActionsForLastNDays } from '../utils/analytics';
-import AddArticleForm from '../components/AddArticleForm';
-import ListingForm from '../components/ListingForm';
-import PollForm from '../components/PollForm';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContexts";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
+import { db } from "../configs/firebase";
+import StatisticsCard from "../components/StatisticsCard";
+import AdminChart from "../components/AdminCard";
+import {
+  UserIcon,
+  NewspaperIcon,
+  ShoppingBagIcon,
+  ChartBarIcon,
+  HeartIcon,
+  HandThumbUpIcon,
+  ClockIcon,
+} from "@heroicons/react/24/outline";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { Button } from "../components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+import {
+  getPageViewsForLastNDays,
+  getUserActionsForLastNDays,
+} from "../utils/analytics";
+import AddArticleForm from "../components/AddArticleForm";
+import ListingForm from "../components/ListingForm";
+import PollForm from "../components/PollForm";
 
 interface Article {
   id: string;
@@ -80,47 +118,57 @@ const Admin: React.FC = () => {
     monthlyActiveUsers: 0,
     averageSessionDuration: 0,
   });
-  const [detailedStatistics, setDetailedStatistics] = useState<DetailedStatistics>({
-    articleViewsPerDay: {},
-    listingViewsPerDay: {},
-    userRegistrationsPerDay: {},
-    commentsPerDay: {},
-    likesPerDay: {},
-  });
+  const [detailedStatistics, setDetailedStatistics] =
+    useState<DetailedStatistics>({
+      articleViewsPerDay: {},
+      listingViewsPerDay: {},
+      userRegistrationsPerDay: {},
+      commentsPerDay: {},
+      likesPerDay: {},
+    });
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!user || !isAdmin) {
-      navigate('/');
+      navigate("/");
       return;
     }
 
     const fetchData = async () => {
       // Fetch articles, listings, and polls
-      const articlesSnapshot = await getDocs(collection(db, 'articles'));
-      const fetchedArticles = articlesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Article));
+      const articlesSnapshot = await getDocs(collection(db, "articles"));
+      const fetchedArticles = articlesSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as Article)
+      );
       setArticles(fetchedArticles);
 
-      const listingsSnapshot = await getDocs(collection(db, 'listings'));
-      const fetchedListings = listingsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Listing));
+      const listingsSnapshot = await getDocs(collection(db, "listings"));
+      const fetchedListings = listingsSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as Listing)
+      );
       setListings(fetchedListings);
 
-      const pollsSnapshot = await getDocs(collection(db, 'polls'));
-      const fetchedPolls = pollsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Poll));
+      const pollsSnapshot = await getDocs(collection(db, "polls"));
+      const fetchedPolls = pollsSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as Poll)
+      );
       setPolls(fetchedPolls);
 
       // Fetch basic statistics
-      const usersCount = (await getDocs(collection(db, 'users'))).size;
+      const usersCount = (await getDocs(collection(db, "users"))).size;
       const articlesCount = articlesSnapshot.size;
       const listingsCount = listingsSnapshot.size;
       const pollsCount = pollsSnapshot.size;
@@ -129,7 +177,9 @@ const Admin: React.FC = () => {
       let totalLikes = 0;
 
       for (const article of fetchedArticles) {
-        const commentsSnapshot = await getDocs(collection(db, 'articles', article.id, 'comments'));
+        const commentsSnapshot = await getDocs(
+          collection(db, "articles", article.id, "comments")
+        );
         totalComments += commentsSnapshot.size;
         totalLikes += article.likes || 0;
       }
@@ -137,14 +187,14 @@ const Admin: React.FC = () => {
       // Fetch detailed statistics
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      
-      const userSnapshot = await getDocs(query(
-        collection(db, 'users'),
-        where('lastLogin', '>=', thirtyDaysAgo)
-      ));
 
-      const dailyActiveUsers = userSnapshot.docs.filter(doc => 
-        doc.data().lastLogin >= new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      const userSnapshot = await getDocs(
+        query(collection(db, "users"), where("lastLogin", ">=", thirtyDaysAgo))
+      );
+
+      const dailyActiveUsers = userSnapshot.docs.filter(
+        (doc) =>
+          doc.data().lastLogin >= new Date(now.getTime() - 24 * 60 * 60 * 1000)
       ).length;
 
       const monthlyActiveUsers = userSnapshot.size;
@@ -166,9 +216,12 @@ const Admin: React.FC = () => {
 
       // Fetch detailed statistics
       const pageViews = await getPageViewsForLastNDays(30);
-      const userRegistrations = await getUserActionsForLastNDays(30, 'registration');
-      const commentActions = await getUserActionsForLastNDays(30, 'comment');
-      const likeActions = await getUserActionsForLastNDays(30, 'like');
+      const userRegistrations = await getUserActionsForLastNDays(
+        30,
+        "registration"
+      );
+      const commentActions = await getUserActionsForLastNDays(30, "comment");
+      const likeActions = await getUserActionsForLastNDays(30, "like");
 
       setDetailedStatistics({
         articleViewsPerDay: pageViews,
@@ -183,22 +236,45 @@ const Admin: React.FC = () => {
   }, [user, isAdmin, navigate]);
 
   const handleDeleteArticle = async (id: string) => {
-    await deleteDoc(doc(db, 'articles', id));
-    setArticles(articles.filter(article => article.id !== id));
+    await deleteDoc(doc(db, "articles", id));
+    setArticles(articles.filter((article) => article.id !== id));
   };
 
   const handleDeleteListing = async (id: string) => {
-    await deleteDoc(doc(db, 'listings', id));
-    setListings(listings.filter(listing => listing.id !== id));
+    await deleteDoc(doc(db, "listings", id));
+    setListings(listings.filter((listing) => listing.id !== id));
   };
 
   const handleDeletePoll = async (id: string) => {
-    await deleteDoc(doc(db, 'polls', id));
-    setPolls(polls.filter(poll => poll.id !== id));
+    await deleteDoc(doc(db, "polls", id));
+    setPolls(polls.filter((poll) => poll.id !== id));
   };
 
-  const handleArticleAdded = (newArticle: Article) => {
-    setArticles([newArticle, ...articles]);
+  const handleArticleAdded = async (newArticle: Article) => {
+    try {
+      // Mettre à jour l'état local avec le nouvel article
+      setArticles((prevArticles) => [newArticle, ...prevArticles]);
+
+      // Afficher une notification de succès
+      alert("Article publié avec succès !");
+
+      // Optionnel : Rafraîchir la liste des articles
+      const articlesSnapshot = await getDocs(collection(db, "articles"));
+      const fetchedArticles = articlesSnapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as Article)
+      );
+      setArticles(fetchedArticles);
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour de la liste des articles:",
+        error
+      );
+      alert("Erreur lors de la publication de l'article");
+    }
   };
 
   const handleListingAdded = (newListing: Listing) => {
@@ -212,7 +288,7 @@ const Admin: React.FC = () => {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-      
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -227,15 +303,51 @@ const Admin: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <StatisticsCard title="Total Users" value={statistics.totalUsers} icon={<UserIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Total Articles" value={statistics.totalArticles} icon={<NewspaperIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Total Listings" value={statistics.totalListings} icon={<ShoppingBagIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Total Polls" value={statistics.totalPolls} icon={<ChartBarIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Total Comments" value={statistics.totalComments} icon={<HeartIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Total Likes" value={statistics.totalLikes} icon={<HandThumbUpIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Daily Active Users" value={statistics.dailyActiveUsers} icon={<UserIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Monthly Active Users" value={statistics.monthlyActiveUsers} icon={<UserIcon className="h-6 w-6" />} />
-                <StatisticsCard title="Avg. Session Duration" value={`${statistics.averageSessionDuration} min`} icon={<ClockIcon className="h-6 w-6" />} />
+                <StatisticsCard
+                  title="Total Users"
+                  value={statistics.totalUsers}
+                  icon={<UserIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Total Articles"
+                  value={statistics.totalArticles}
+                  icon={<NewspaperIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Total Listings"
+                  value={statistics.totalListings}
+                  icon={<ShoppingBagIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Total Polls"
+                  value={statistics.totalPolls}
+                  icon={<ChartBarIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Total Comments"
+                  value={statistics.totalComments}
+                  icon={<HeartIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Total Likes"
+                  value={statistics.totalLikes}
+                  icon={<HandThumbUpIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Daily Active Users"
+                  value={statistics.dailyActiveUsers}
+                  icon={<UserIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Monthly Active Users"
+                  value={statistics.monthlyActiveUsers}
+                  icon={<UserIcon className="h-6 w-6" />}
+                />
+                <StatisticsCard
+                  title="Avg. Session Duration"
+                  value={`${statistics.averageSessionDuration} min`}
+                  icon={<ClockIcon className="h-6 w-6" />}
+                />
               </div>
             </CardContent>
           </Card>
@@ -244,31 +356,37 @@ const Admin: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Detailed Statistics</CardTitle>
-              <CardDescription>In-depth analytics for the past 30 days</CardDescription>
+              <CardDescription>
+                In-depth analytics for the past 30 days
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AdminChart 
+                <AdminChart
                   data={Object.values(detailedStatistics.articleViewsPerDay)}
                   labels={Object.keys(detailedStatistics.articleViewsPerDay)}
                   title="Article Views per Day"
                 />
-                <AdminChart 
+                <AdminChart
                   data={Object.values(detailedStatistics.listingViewsPerDay)}
                   labels={Object.keys(detailedStatistics.listingViewsPerDay)}
                   title="Listing Views per Day"
                 />
-                <AdminChart 
-                  data={Object.values(detailedStatistics.userRegistrationsPerDay)}
-                  labels={Object.keys(detailedStatistics.userRegistrationsPerDay)}
+                <AdminChart
+                  data={Object.values(
+                    detailedStatistics.userRegistrationsPerDay
+                  )}
+                  labels={Object.keys(
+                    detailedStatistics.userRegistrationsPerDay
+                  )}
                   title="User Registrations per Day"
                 />
-                <AdminChart 
+                <AdminChart
                   data={Object.values(detailedStatistics.commentsPerDay)}
                   labels={Object.keys(detailedStatistics.commentsPerDay)}
                   title="Comments per Day"
                 />
-                <AdminChart 
+                <AdminChart
                   data={Object.values(detailedStatistics.likesPerDay)}
                   labels={Object.keys(detailedStatistics.likesPerDay)}
                   title="Likes per Day"
@@ -280,31 +398,41 @@ const Admin: React.FC = () => {
         <TabsContent value="content">
           <Card>
             <CardHeader>
-              <CardTitle>Content Management</CardTitle>
-              <CardDescription>Manage articles, listings, and polls</CardDescription>
+              <CardTitle>Gestion du contenu</CardTitle>
+              <CardDescription>
+                Gérer les articles, annonces et sondages
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="articles">
                 <TabsList>
                   <TabsTrigger value="articles">Articles</TabsTrigger>
-                  <TabsTrigger value="listings">Listings</TabsTrigger>
-                  <TabsTrigger value="polls">Polls</TabsTrigger>
+                  <TabsTrigger value="listings">Annonces</TabsTrigger>
+                  <TabsTrigger value="polls">Sondages</TabsTrigger>
                 </TabsList>
                 <TabsContent value="articles">
                   <div className="space-y-4">
                     <AddArticleForm onArticleAdded={handleArticleAdded} />
                     {articles.map((article) => (
-                      <div key={article.id} className="bg-white p-4 rounded shadow flex justify-between items-center">
+                      <div
+                        key={article.id}
+                        className="bg-white p-4 rounded shadow flex justify-between items-center"
+                      >
                         <div>
-                          <h3 className="text-xl font-semibold">{article.title}</h3>
+                          <h3 className="text-xl font-semibold">
+                            {article.title}
+                          </h3>
                           <p className="text-gray-600">{article.category}</p>
-                          <p className="text-sm text-gray-500">Views: {article.views} | Likes: {article.likes} | Comments: {article.comments}</p>
+                          <p className="text-sm text-gray-500">
+                            Vues: {article.views} | J'aime: {article.likes} |
+                            Commentaires: {article.comments}
+                          </p>
                         </div>
                         <Button
                           onClick={() => handleDeleteArticle(article.id)}
                           variant="destructive"
                         >
-                          Delete
+                          Supprimer
                         </Button>
                       </div>
                     ))}
@@ -314,11 +442,20 @@ const Admin: React.FC = () => {
                   <div className="space-y-4">
                     <ListingForm onListingAdded={handleListingAdded} />
                     {listings.map((listing) => (
-                      <div key={listing.id} className="bg-white p-4 rounded shadow flex justify-between items-center">
+                      <div
+                        key={listing.id}
+                        className="bg-white p-4 rounded shadow flex justify-between items-center"
+                      >
                         <div>
-                          <h3 className="text-xl font-semibold">{listing.title}</h3>
-                          <p className="text-gray-600">{listing.category} - ${listing.price}</p>
-                          <p className="text-sm text-gray-500">Views: {listing.views}</p>
+                          <h3 className="text-xl font-semibold">
+                            {listing.title}
+                          </h3>
+                          <p className="text-gray-600">
+                            {listing.category} - ${listing.price}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Views: {listing.views}
+                          </p>
                         </div>
                         <Button
                           onClick={() => handleDeleteListing(listing.id)}
@@ -334,12 +471,19 @@ const Admin: React.FC = () => {
                   <div className="space-y-4">
                     <PollForm onPollAdded={handlePollAdded} />
                     {polls.map((poll) => (
-                      <div key={poll.id} className="bg-white p-4 rounded shadow flex justify-between items-center">
+                      <div
+                        key={poll.id}
+                        className="bg-white p-4 rounded shadow flex justify-between items-center"
+                      >
                         <div>
-                          <h3 className="text-xl font-semibold">{poll.question}</h3>
+                          <h3 className="text-xl font-semibold">
+                            {poll.question}
+                          </h3>
                           <ul className="list-disc list-inside">
                             {poll.options.map((option) => (
-                              <li key={option.id}>{option.text} - {option.votes} votes</li>
+                              <li key={option.id}>
+                                {option.text} - {option.votes} votes
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -363,4 +507,3 @@ const Admin: React.FC = () => {
 };
 
 export default Admin;
-
