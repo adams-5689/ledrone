@@ -2,7 +2,7 @@ export interface Article {
   id: string;
   title: string;
   content: string;
-  category: string;
+  categoryId: string;
   author: string;
   date: string;
   tags: string[];

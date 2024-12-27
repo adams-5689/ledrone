@@ -9,7 +9,7 @@ interface Category {
 interface CategoryListProps {
   categories: Category[];
   selectedCategory: string | null;
-  onSelectCategory: (categoryId: string | null) => void;
+  onSelectCategory: (category: string | null) => void;
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({
@@ -24,10 +24,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className={`px-3 py-1 rounded-full ${
+          className={`px-4 py-2 rounded-full ${
             selectedCategory === null
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-700"
+              ? "bg-orange-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
           onClick={() => onSelectCategory(null)}
         >
@@ -38,10 +38,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
             key={category.id}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`px-3 py-1 rounded-full ${
+            className={`px-4 py-2 rounded-full ${
               selectedCategory === category.id
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700"
+                ? "bg-orange-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
             onClick={() => onSelectCategory(category.id)}
           >

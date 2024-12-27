@@ -3,6 +3,7 @@ import { db } from "../configs/firebase";
 import { useAuth } from "../contexts/AuthContexts";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
+import { collection, addDoc } from "firebase/firestore";
 
 interface PollFormProps {
   onPollAdded: (newPoll: any) => void;
@@ -18,7 +19,8 @@ const PollForm: React.FC<PollFormProps> = ({ onPollAdded }) => {
     if (!user) return;
 
     try {
-      const pollRef = await db.collection("polls").add({
+      const pollsCollection = collection(db, "polls"); // Récupère la référence à la collection "polls"
+      const pollRef = await addDoc(pollsCollection, {
         question,
         options: options.map((option) => ({ text: option, votes: 0 })),
         createdAt: new Date().toISOString(),

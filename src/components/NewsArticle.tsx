@@ -1,9 +1,9 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContexts';
-import LikeButton from './LikeButton';
-import { MessageCircle, Share2 } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "../contexts/AuthContexts";
+import LikeButton from "./LikeButton";
+import { MessageCircle, Share2 } from "lucide-react";
 
 interface NewsArticleProps {
   id: string;
@@ -11,7 +11,8 @@ interface NewsArticleProps {
   content: string;
   author: string;
   date: string;
-  category: string;
+  categoryId: string;
+  categoryName?: string;
   scope: string;
   imageUrl?: string;
   videoUrl?: string;
@@ -25,12 +26,13 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
   content,
   author,
   date,
-  category,
+  categoryId,
+  categoryName,
   scope,
   imageUrl,
   videoUrl,
   likes,
-  comments
+  comments,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -41,23 +43,29 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
 
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({
-        title: title,
-        text: content.substring(0, 100) + '...',
-        url: `${window.location.origin}/news/${id}`
-      }).then(() => {
-        console.log('Successful share');
-      }).catch((error) => {
-        console.log('Error sharing', error);
-      });
+      navigator
+        .share({
+          title: title,
+          text: content.substring(0, 100) + "...",
+          url: `${window.location.origin}/news/${id}`,
+        })
+        .then(() => {
+          console.log("Successful share");
+        })
+        .catch((error) => {
+          console.log("Error sharing", error);
+        });
     } else {
       // Fallback for browsers that don't support navigator.share
       const url = `${window.location.origin}/news/${id}`;
-      navigator.clipboard.writeText(url).then(() => {
-        alert('Link copied to clipboard!');
-      }).catch((err) => {
-        console.error('Failed to copy: ', err);
-      });
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          alert("Link copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+        });
     }
   };
 
@@ -70,31 +78,31 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
     >
       {imageUrl && (
         <div className="w-full h-48 overflow-hidden">
-          <img 
-            src={imageUrl} 
-            alt={title} 
+          <img
+            src={imageUrl}
+            alt={title}
             className="w-full h-full object-cover"
           />
         </div>
       )}
       {videoUrl && (
         <div className="w-full h-48 overflow-hidden">
-          <video 
-            src={videoUrl} 
+          <video
+            src={videoUrl}
             className="w-full h-full object-cover"
             controls
           />
         </div>
       )}
       <div className="p-6">
-        <h2 
+        <h2
           onClick={handleClick}
-          className="text-2xl font-bold mb-2 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+          className="text-2xl font-bold mb-2 text-orange-600 hover:text-orange-800 transition-colors cursor-pointer"
         >
           {title}
         </h2>
         <div className="flex items-center text-sm text-gray-600 mb-2">
-          <span className="mr-2">{category}</span>
+          <span className="mr-2">{categoryName || "Uncategorized"}</span>
           <span className="mr-2">•</span>
           <span>{scope}</span>
         </div>
@@ -108,8 +116,12 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                <LikeButton articleId={id} initialLikes={likes} initialDislikes={0} />
-                <button 
+                <LikeButton
+                  articleId={id}
+                  initialLikes={likes}
+                  initialDislikes={0}
+                />
+                <button
                   onClick={() => navigate(`/news/${id}#comments`)}
                   className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
                 >
@@ -118,7 +130,7 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
                 </button>
               </>
             )}
-            <button 
+            <button
               onClick={handleShare}
               className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
             >
@@ -133,4 +145,3 @@ const NewsArticle: React.FC<NewsArticleProps> = ({
 };
 
 export default NewsArticle;
-

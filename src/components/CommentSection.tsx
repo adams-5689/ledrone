@@ -86,7 +86,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
           />
           <button
             type="submit"
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="mt-2 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
           >
             Poster le commentaire
           </button>

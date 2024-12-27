@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContexts";
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   return (
-    <header className="bg-blue-600 text-white shadow-md">
+    <header className="bg-orange-400 text-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold">
           LeDrone
@@ -15,7 +15,7 @@ const Header: React.FC = () => {
             <li>
               <Link
                 to="/news"
-                className="hover:text-blue-200 transition-colors"
+                className="hover:text-orange-200 transition-colors"
               >
                 News
               </Link>
@@ -23,7 +23,7 @@ const Header: React.FC = () => {
             <li>
               <Link
                 to="/marketplace"
-                className="hover:text-blue-200 transition-colors"
+                className="hover:text-orange-200 transition-colors"
               >
                 Marketplace
               </Link>
@@ -33,7 +33,7 @@ const Header: React.FC = () => {
                 <li>
                   <Link
                     to="/profile"
-                    className="hover:text-blue-200 transition-colors"
+                    className="hover:text-orange-200 transition-colors"
                   >
                     profile
                   </Link>
@@ -41,7 +41,7 @@ const Header: React.FC = () => {
                 <li>
                   <button
                     onClick={() => logout()}
-                    className="hover:text-blue-200 transition-colors"
+                    className="hover:text-orange-200 transition-colors"
                   >
                     logout
                   </button>
@@ -52,7 +52,7 @@ const Header: React.FC = () => {
                 <li>
                   <Link
                     to="/login"
-                    className="hover:text-blue-200 transition-colors"
+                    className="hover:text-orange-200 transition-colors"
                   >
                     Login
                   </Link>
@@ -60,7 +60,7 @@ const Header: React.FC = () => {
                 <li>
                   <Link
                     to="/registration"
-                    className="hover:text-blue-200 transition-colors"
+                    className="hover:text-orange-200 transition-colors"
                   >
                     Enregistrement
                   </Link>
